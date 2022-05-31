@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="MAIN" Id="{735025e4-61c2-449d-81e1-3832bb0f4520}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR CONSTANT
+	COversample:UDINT:=124;	(*start with 0*)
+	CMaxIndexHistory:UDINT:=100;
+	CNumberOfCyclesForFrequencyAverage:UDINT:=999;	(* +1 is calculated*)
+END_VAR
+VAR
+		(*input / output*)
+	abyEL1262_Ch1 AT %I*:ARRAY[0..COversample] OF BYTE;
+	abyEL1262_Ch2 AT %I*:ARRAY[0..COversample] OF BYTE;
+	wCycleCounter_Ch1 AT %I*:WORD;
+	wCycleCounter_Ch2 AT %I*:WORD;
+	nStartTimeNextLatch AT %I*:UDINT;
+		(*check link*)
+	nIndexCycleCount:UDINT;
+	awHistoryCC:ARRAY[0..CMaxIndexHistory , 0..1] OF WORD;
+	nCycleCountBreak:UDINT;
+	wCC1_Last, wCC2_Last:WORD;
+		(*count rising edges*)
+	bLastValue, bBit:BOOL;
+	nCountRisingEdges:UDINT;
+	nByte, nBit:UDINT;
+	byCurrentSample:BYTE;
+		(*system, need TcSystem.lib*)
+	bDone:BOOL;
+	nCurrentTaskIndex:BYTE;			(*current (own) task number: 1..4*)
+	fbGetCurrentTaskIndex:GETCURTASKINDEX;
+	sTaskName:STRING(255);
+	nTaskCycleTime:DWORD;			(*in ns*)
+		(*calculate frequency*)
+	rCurrentFrequencyHz, rAverageFrequencyHz:REAL;
+	arHistoryFrequency:ARRAY[0..CNumberOfCyclesForFrequencyAverage] OF REAL;
+	nIndexFerquency:UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*get own task cycle time when program start*)
+IF NOT bDone THEN
+	fbGetCurrentTaskIndex(index=>nCurrentTaskIndex );
+	nTaskCycleTime := (_TaskInfo[nCurrentTaskIndex].cycleTime * 100);			(*in ns*)
+	sTaskName := _TaskInfo[nCurrentTaskIndex].taskName ;
+	bDone := TRUE;
+END_IF;
+
+(*check for lost or repeated frames by CycleCounter*)
+awHistoryCC[nIndexCycleCount , 0] :=wCycleCounter_Ch1;		(*wCycleCounter_Ch1 and wCycleCounter_Ch2 are equal*)
+awHistoryCC[nIndexCycleCount , 1] :=wCycleCounter_Ch2;
+IF (NOT (wCycleCounter_Ch1 - wCC1_Last = 1)) OR (NOT (wCycleCounter_Ch2 - wCC2_Last = 1)) THEN
+	nCycleCountBreak := nCycleCountBreak + 1;
+END_IF
+wCC1_Last := wCycleCounter_Ch1;
+wCC2_Last := wCycleCounter_Ch2;
+nIndexCycleCount := SEL( (nIndexCycleCount = CMaxIndexHistory), nIndexCycleCount + 1, 0);
+
+(*count rising edges on channel 2 per cycle*)
+nCountRisingEdges := 0;
+FOR nByte := 0 TO COversample BY 1 DO
+	byCurrentSample := abyEL1262_Ch2[nByte];
+	FOR nBit := 0 TO 7 BY 1 DO
+		CASE nBit OF
+		0:	bBit := abyEL1262_Ch2[nByte].0;
+		1:	bBit := abyEL1262_Ch2[nByte].1;
+		2:	bBit := abyEL1262_Ch2[nByte].2;
+		3:	bBit := abyEL1262_Ch2[nByte].3;
+		4:	bBit := abyEL1262_Ch2[nByte].4;
+		5:	bBit := abyEL1262_Ch2[nByte].5;
+		6:	bBit := abyEL1262_Ch2[nByte].6;
+		7:	bBit := abyEL1262_Ch2[nByte].7;
+		END_CASE
+		IF NOT bLastValue AND bBit THEN
+			nCountRisingEdges := nCountRisingEdges + 1;
+		END_IF
+		bLastValue := bBit;
+	END_FOR
+END_FOR
+rCurrentFrequencyHz := nCountRisingEdges / (nTaskCycleTime / 1000000000.0);
+
+(*calculate input frequency, averange over CNumberOfCyclesForFrequencyAverage cycles*)
+arHistoryFrequency[nIndexFerquency] := rCurrentFrequencyHz;
+nIndexFerquency := SEL( (nIndexFerquency = CNumberOfCyclesForFrequencyAverage ), nIndexFerquency + 1, 0);
+IF (nIndexFerquency = 0) THEN
+	rAverageFrequencyHz := 0;
+	FOR nIndexFerquency := 0 TO CNumberOfCyclesForFrequencyAverage BY 1 DO
+		rAverageFrequencyHz := rAverageFrequencyHz + arHistoryFrequency[nIndexFerquency];
+	END_FOR
+	rAverageFrequencyHz := rAverageFrequencyHz / (CNumberOfCyclesForFrequencyAverage + 1);
+	nIndexFerquency := 0;
+END_IF]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

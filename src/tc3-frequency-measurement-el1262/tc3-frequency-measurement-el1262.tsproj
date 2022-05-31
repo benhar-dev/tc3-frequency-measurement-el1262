@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.29">
+	<DataTypes>
+		<DataType>
+			<Name GUID="{34EA2776-CDA1-D707-6A52-A5444134302F}" IecBaseType="true" AutoDeleteType="true">ARRAY [0..124] OF BYTE</Name>
+			<BitSize>1000</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
+			<ArrayInfo>
+				<LBound>0</LBound>
+				<Elements>125</Elements>
+			</ArrayInfo>
+		</DataType>
+	</DataTypes>
+	<Project ProjectGUID="{EF16F174-48D5-447E-A2DC-346E472EAFFA}" Target64Bit="true" ShowHideConfigurations="#x106">
+		<System>
+			<Tasks>
+				<Task Id="3" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
+					<Name>PlcTask</Name>
+				</Task>
+			</Tasks>
+		</System>
+		<Plc>
+			<Project GUID="{15C22313-8C4E-4A76-88C0-DA7BE50C6043}" Name="Main" PrjFilePath="Main\Main.plcproj" TmcFilePath="Main\Main.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2">
+					<Name>Main Instance</Name>
+					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
+					<Vars VarGrpType="1">
+						<Name>PlcTask Inputs</Name>
+						<Var>
+							<Name>MAIN.abyEL1262_Ch1</Name>
+							<Comment><![CDATA[input / output]]></Comment>
+							<Type GUID="{34EA2776-CDA1-D707-6A52-A5444134302F}">ARRAY [0..124] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.abyEL1262_Ch2</Name>
+							<Type GUID="{34EA2776-CDA1-D707-6A52-A5444134302F}">ARRAY [0..124] OF BYTE</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.wCycleCounter_Ch1</Name>
+							<Type>WORD</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.wCycleCounter_Ch2</Name>
+							<Type>WORD</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.nStartTimeNextLatch</Name>
+							<Type>UDINT</Type>
+						</Var>
+					</Vars>
+					<Contexts>
+						<Context>
+							<Id NeedCalleeCall="true">0</Id>
+							<Name>PlcTask</Name>
+							<ManualConfig>
+								<OTCID>#x02010030</OTCID>
+							</ManualConfig>
+							<Priority>20</Priority>
+							<CycleTime>10000000</CycleTime>
+						</Context>
+					</Contexts>
+					<TaskPouOids>
+						<TaskPouOid Prio="20" OTCID="#x08502001"/>
+					</TaskPouOids>
+				</Instance>
+			</Project>
+		</Plc>
+	</Project>
+</TcSmProject>
