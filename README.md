@@ -15,10 +15,10 @@ always subject to change, revision, and rethinking at any time. Please do not ho
 in perpetuity.
 
 ## Overview 
-The EL1262 input terminal has a sample on Infosys explaining how to perform frequency measurement using TwinCAT 2.  This project is a conversion of this project.  This project has not been refactored and is as-is.
+The EL1262 input terminal has a sample on Infosys explaining how to perform frequency measurement using TwinCAT 2.  This project is a conversion of this project.
 
 ## Getting Started
-You will need to scan your hardware and link the EL1262 oversample inputs to the abyEL1262_Ch2 variables.  Run the code and read the rCurrentFrequencyHz, rAverageFrequencyHz variables for the output. 
+You will need to scan your hardware and link the EL1262 oversample inputs to the el1262_ChannelInput variables.  Run the code and read the currentFrequencyInHz, averageFrequencyInHz variables for the output. 
 
 ## Versions
 * TcXaeShell 3.1.4024.29
